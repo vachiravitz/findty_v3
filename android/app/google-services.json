@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "598414350738",
+    "project_id": "findty-a7695",
+    "storage_bucket": "findty-a7695.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:598414350738:android:adad0c2622644e23f5094b",
+        "android_client_info": {
+          "package_name": "com.vachiravit.findty"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDl5zmoJZMeUl7bqR8Yr8ei4kPlUmcPGN8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

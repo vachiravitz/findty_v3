@@ -1,0 +1,36 @@
+name: findty_v3
+description: "หาตี้ — แอปหาเพื่อนเล่นเกม (Squad Finder)"
+publish_to: 'none'
+version: 0.3.0+1
+
+environment:
+  sdk: ^3.11.5
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+
+  # Firebase
+  cloud_firestore: ^6.2.0
+  firebase_auth: ^6.3.0
+  firebase_core: ^4.6.0
+
+  # UI
+  flutter_rating_bar: ^4.0.1
+  google_fonts: ^8.0.2
+  flutter_launcher_icons: ^0.14.4
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+  change_app_package_name: ^1.5.0
+
+# config ของ Flutter (assets, fonts, ฯลฯ) ต้องอยู่ section นี้
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/games/
+    - assets/logo/
