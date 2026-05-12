@@ -6,6 +6,7 @@ import '../services/auth_service.dart';
 import '../services/user_service.dart';
 import 'edit_profile_screen.dart';
 import 'write_review_screen.dart';
+import 'change_password_screen.dart';
 
 /// หน้า profile
 /// - uid == null  -> profile ของฉัน (เห็นปุ่ม Edit)
@@ -128,8 +129,8 @@ class ProfileScreen extends StatelessWidget {
             Text(profile.tagline,
                 style: const TextStyle(color: textSub, fontSize: 16)),
           const SizedBox(height: 14),
-          // ปุ่ม edit / write review
-          if (isMe)
+// ปุ่ม edit / write review
+          if (isMe) ...[
             ElevatedButton.icon(
               icon: const Icon(Icons.edit, size: 18),
               label: const Text('แก้ไขโปรไฟล์'),
@@ -144,8 +145,32 @@ class ProfileScreen extends StatelessWidget {
                 MaterialPageRoute(
                     builder: (_) => EditProfileScreen(profile: profile)),
               ),
-            )
-          else
+            ),
+            const SizedBox(height: 10), // เพิ่มระยะห่างระหว่างปุ่ม
+
+            // ---------------- ปุ่มเปลี่ยนรหัสผ่าน ----------------
+            OutlinedButton.icon(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const ChangePasswordScreen()),
+                );
+              },
+              icon: const Icon(Icons.lock_reset, color: deepPink, size: 18),
+              label: const Text(
+                  'เปลี่ยนรหัสผ่าน',
+                  style: TextStyle(color: deepPink, fontWeight: FontWeight.bold)
+              ),
+              style: OutlinedButton.styleFrom(
+                side: const BorderSide(color: deepPink, width: 1.5),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20), // ทำให้ขอบมนเท่ากับปุ่มบน
+                ),
+              ),
+            ),
+            // --------------------------------------------------
+
+          ] else
             ElevatedButton.icon(
               icon: const Icon(Icons.star, size: 18),
               label: const Text('Write Review'),
