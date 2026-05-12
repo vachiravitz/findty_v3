@@ -8,6 +8,7 @@ import '../services/auth_service.dart';
 import '../services/chat_service.dart';
 import '../services/party_service.dart';
 import '../services/user_service.dart';
+import '../services/game_service.dart'; // เพิ่ม import นี้
 import 'profile_screen.dart';
 
 class PartyDetailScreen extends StatefulWidget {
@@ -24,6 +25,23 @@ class _PartyDetailScreenState extends State<PartyDetailScreen> {
   bool _sending = false;
   bool _joining = false;
   bool _deleting = false;
+
+  // เพิ่มตัวแปรสำหรับเก็บข้อมูลเกม
+  GameConfig? _game;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadGameInfo(); // โหลดข้อมูลเกมเมื่อเข้าหน้าจอ
+  }
+
+  // ฟังก์ชันโหลดข้อมูลเกมจาก Firestore
+  Future<void> _loadGameInfo() async {
+    final g = await GameService.instance.getGameById(widget.party.gameId);
+    if (mounted) {
+      setState(() => _game = g);
+    }
+  }
 
   @override
   void dispose() {
@@ -108,16 +126,15 @@ class _PartyDetailScreenState extends State<PartyDetailScreen> {
     }
   }
 
-  /// ลบตี้ — ถามยืนยันก่อน
   Future<void> _confirmAndDelete() async {
     if (widget.party.id == null) return;
 
     final ok = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('ลบตี้?'),
+        title: const Text('ลบปาร์ตี้'),
         content: const Text(
-            'การลบจะลบข้อความ chat ในตี้ทั้งหมดด้วย\nและ undo ไม่ได้นะ'),
+            'การลบจะลบข้อความ chat ในตี้ทั้งหมดด้วย'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
@@ -145,7 +162,7 @@ class _PartyDetailScreenState extends State<PartyDetailScreen> {
             content: Text('ลบตี้เรียบร้อย'),
             backgroundColor: Colors.green),
       );
-      Navigator.pop(context); // กลับไปหน้าฟีด
+      Navigator.pop(context);
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -165,7 +182,6 @@ class _PartyDetailScreenState extends State<PartyDetailScreen> {
           body: Center(child: Text('party id ไม่ถูกต้อง')));
     }
 
-    // เช็ค owner ตั้งแต่ระดับ AppBar (ไม่ต้องรอ stream — owner ไม่เปลี่ยน)
     final isOwner =
         AuthService.instance.currentUid == widget.party.ownerId;
 
@@ -199,11 +215,10 @@ class _PartyDetailScreenState extends State<PartyDetailScreen> {
         builder: (context, snap) {
           final party = snap.data ?? widget.party;
           final myUid = AuthService.instance.currentUid;
-          final game = GameRegistry.byId(party.gameId);
 
           return Column(
             children: [
-              _buildHeaderCard(context, party, game, myUid),
+              _buildHeaderCard(context, party, _game, myUid),
               _buildJoinSection(party, myUid),
               const Divider(height: 1),
               Expanded(child: _buildChatList(party, myUid)),
@@ -236,7 +251,11 @@ class _PartyDetailScreenState extends State<PartyDetailScreen> {
         children: [
           Row(
             children: [
-              if (game != null) Icon(game.icon, size: 20, color: deepPink),
+              // ปรับการแสดงผล icon: ถ้ามี iconUrl ให้โชว์รูปจากเน็ต ถ้าไม่มีโชว์ icon fallback
+              if (game != null)
+                game.iconUrl != null && game.iconUrl!.isNotEmpty
+                    ? Image.network(game.iconUrl!, width: 20, height: 20)
+                    : Icon(game.icon, size: 20, color: deepPink),
               const SizedBox(width: 6),
               Text(game?.displayName ?? party.gameId,
                   style: const TextStyle(fontWeight: FontWeight.bold)),

@@ -1,218 +1,157 @@
-# findty (หาตี้) 🎮
+# Findty (หาตี้) 🎮
 
-แอปหาเพื่อนเล่นเกมแบบเรียลไทม์ — สร้างตี้ / หาตี้ / แชทในตี้ / รีวิวเพื่อนร่วมตี้ ผ่าน Firebase
-
-> เกมที่รองรับ: **Valorant**, **CS2**, **ROV**, **Minecraft**
+แอปหาเพื่อนเล่นเกมแบบเรียลไทม์ — สร้างตี้ / **เข้าร่วมตี้** / **ลบตี้** / แชทในตี้ / รีวิวเพื่อนร่วมตี้ ผ่าน Firebase
+และรองรับ **Dynamic Game Configuration** (เพิ่ม/ลดเกมได้ผ่านหลังบ้านโดยไม่ต้องอัปเดตแอป)
 
 ---
 
 ## ✨ Features
 
-- 🔐 **Firebase Auth** — register/login ด้วย email + password
-- 👤 **User Profiles** — แต่ละคนมีโปรไฟล์ (ชื่อ, รูป, tagline, Discord, Steam, traits)
-- 🔄 **Realtime Party Feed** — มีคนสร้างตี้ที่ไหน หน้าฟีดอัปเดตทันที
-- 💬 **Chat in Party** — กดเข้า card ตี้ → หน้า detail มีกล่องแชทเรียลไทม์ ส่งชื่อ/discord ให้แอดกันได้
-- ⭐ **Reviews** — กดเข้าโปรไฟล์คนอื่น → เขียนรีวิว (1-5 ดาว + ข้อความ) → โชว์ใต้โปรไฟล์พร้อมชื่อ + วันเวลา
-- ✏️ **Edit Profile** — เปลี่ยนรูป (URL), ชื่อ, social links, traits
-- 🧩 **Game-aware UI** — UI ฟอร์มสร้างตี้ปรับตัวเองตามเกม (มี/ไม่มี rank, role, จำกัด/ไม่จำกัดคน)
-- 🇹🇭 **Thai-first** — Noto Sans Thai + locale ไทย ครบ
-- 🧱 **Extensible** — เพิ่มเกมใหม่แก้ไฟล์เดียว (`lib/config/game_config.dart`)
+- ☁️ **Dynamic Game Registry** — ดึงรายชื่อเกม กฎของเกม (Rank, Role, Party Size) และรูปภาพจาก Firestore แบบ Real-time เพิ่มเกมใหม่ได้ทันทีผ่าน Firebase Console
+- 🔍 **Search & Category Filter** — ค้นหาเกมจากชื่อ หรือกรองตามหมวดหมู่ (เช่น FPS, MOBA, Battle Royale)
+- 🔐 **Firebase Auth** — Register / Login ด้วย Email + Password
+- 👤 **User Profiles** — โปรไฟล์ส่วนตัว (ชื่อ, รูป Avatar, Tagline, Discord, Steam, Style Traits)
+- 🔄 **Real-time Party Feed** — มีคนสร้างตี้ที่ไหน ฟีดอัปเดตทันที
+- ✋ **Join / Leave Party** — กดปุ่ม "เข้าร่วมตี้" (ใช้ Firestore transaction ป้องกันคนเข้าเกินจำนวน)
+- 🗑️ **Delete Party** — หัวตี้ลบตี้ของตัวเองได้ (ลบประวัติการแชทพร้อมกันอัตโนมัติ)
+- 👥 **Member Tracking** — รู้ว่าใครอยู่ในตี้บ้าง โชว์ Avatar และกดเข้าไปดูโปรไฟล์เพื่อนได้
+- 💬 **Chat in Party** — แชทเรียลไทม์ในตี้ นัดแนะ ส่งชื่อ/Discord ให้แอดกัน
+- ⭐ **Reviews System** — รีวิวเพื่อนร่วมตี้หลังเล่นเสร็จ (ให้ดาว + ข้อความ + ชื่อ + วันเวลา)
+- 🖼️ **Remote Network Icons** — ดึงรูปภาพไอคอนเกมจาก Firebase Storage (ลดขนาดไฟล์แอป) พร้อมระบบ Fallback Material Icon
 
 ---
 
-## 📁 โครงสร้างโปรเจกต์
+## 📁 โครงสร้างโปรเจกต์ (ว่าอะไรอยู่ตรงไหน)
 
-```
+```text
 lib/
-├── main.dart                          # entry + Firebase + auth-aware home
-├── firebase_options.dart              # *** Firebase config ***
-├── constants.dart
+├── main.dart                          # จุดเริ่มต้นแอป, ตั้งค่า Theme, เช็ค Auth State (ล็อกอินหรือยัง)
+├── firebase_options.dart              # ตั้งค่าการเชื่อมต่อ Firebase
+├── constants.dart                     # เก็บค่าสี (Colors) และค่าคงที่ต่างๆ ของแอป
 │
 ├── config/
-│   └── game_config.dart               # 👈 ศูนย์รวมเกม - เพิ่มเกมใหม่ที่นี่
+│   └── game_config.dart               # โมเดล GameConfig (แปลงข้อมูล json จาก Firestore ให้เป็น Object)
 │
 ├── models/
-│   ├── party_model.dart               # ตี้ (พร้อม ownerName + leadAvatar)
-│   ├── user_profile_model.dart        # ⭐ ใหม่: profile
-│   ├── review_model.dart              # ⭐ ใหม่: review
-│   └── message_model.dart             # ⭐ ใหม่: chat message
+│   ├── party_model.dart               # โครงสร้างข้อมูลตี้ (หัวตี้, สมาชิก, จำนวนรับ, เกมที่เล่น)
+│   ├── user_profile_model.dart        # โครงสร้างข้อมูลโปรไฟล์ผู้ใช้
+│   ├── review_model.dart              # โครงสร้างข้อมูลรีวิวคะแนน
+│   └── message_model.dart             # โครงสร้างข้อมูลข้อความแชทในตี้
 │
 ├── services/
-│   ├── auth_service.dart              # ⭐ ใหม่: FirebaseAuth
-│   ├── user_service.dart              # ⭐ ใหม่: profile + reviews
-│   ├── party_service.dart             # ตี้ (stream-based)
-│   └── chat_service.dart              # ⭐ ใหม่: chat
+│   ├── auth_service.dart              # จัดการ Login, Register, SignOut (Firebase Auth)
+│   ├── game_service.dart              # ดึงข้อมูลรายชื่อเกมทั้งหมดจาก Firestore Collection 'games'
+│   ├── user_service.dart              # CRUD ข้อมูลโปรไฟล์และระบบรีวิว
+│   ├── party_service.dart             # จัดการสร้าง, เข้าร่วม, ออก, ลบตี้ (ใช้ Transaction)
+│   └── chat_service.dart              # จัดการส่งข้อความและดึงข้อความแชท (Real-time Stream)
 │
 └── screens/
-    ├── login_screen.dart              # auth จริงแล้ว
-    ├── register_screen.dart           # auth + สร้าง profile doc
-    ├── game_selection_screen.dart     # มีปุ่ม profile + logout
-    ├── party_feed_screen.dart         # card click -> party_detail
-    ├── create_party_screen.dart       # ใช้ user จริง + รูปจริง
-    ├── party_detail_screen.dart       # ⭐ ใหม่: สมาชิก + chat
-    ├── profile_screen.dart            # โหลดจาก Firestore + reviews
-    ├── edit_profile_screen.dart       # ⭐ ใหม่: แก้ profile
-    └── write_review_screen.dart       # ⭐ ใหม่: เขียนรีวิว
+    ├── login_screen.dart              # หน้าเข้าสู่ระบบ
+    ├── register_screen.dart           # หน้าสมัครสมาชิก
+    ├── game_selection_screen.dart     # หน้าแรกหลังล็อกอิน: แสดงรายการเกม, ช่องค้นหา, และปุ่ม Filter หมวดหมู่
+    ├── party_feed_screen.dart         # หน้ากระดานหาตี้ของเกมนั้นๆ (Party Feed)
+    ├── create_party_screen.dart       # หน้าสร้างตี้: รองรับกฎของแต่ละเกม (เช่น เลือกได้หลาย Role สำหรับ Valorant)
+    ├── party_detail_screen.dart       # หน้าห้องตี้: แสดงสมาชิก, ปุ่ม Join/Leave/Delete, และช่องแชท
+    ├── profile_screen.dart            # หน้าแสดงโปรไฟล์ผู้ใช้ และโชว์คะแนนรีวิว
+    ├── edit_profile_screen.dart       # หน้าแก้ไขโปรไฟล์ตัวเอง
+    └── write_review_screen.dart       # หน้าเขียนรีวิวให้ผู้อื่น
 ```
 
 ---
 
-## 🚀 Setup
+## 🔥 Firestore Schema (ฐานข้อมูล)
 
-### 1. ติดตั้ง dependencies
+ระบบถูกออกแบบมาให้ข้อมูลแยกกันอย่างชัดเจนและรองรับการ Scale:
 
-```bash
-flutter pub get
+```text
+games/{gameId}                          <-- (จัดการผ่าน Firebase Console)
+  └─ displayName, iconUrl, category, hasRank, ranks[], hasRole, roles[], allowMultiRole, maxPartySize, memberLabel
+
+users/{uid}
+  ├─ username, email, avatarUrl, discordTag, steamId, tagline, traits[]
+  └─ reviews/{reviewId}                 <-- (Sub-collection เก็บรีวิวที่คนอื่นเขียนให้ user นี้)
+       └─ reviewerUid, reviewerName, reviewerAvatar, rating, text, createdAt
+
+parties/{partyId}
+  ├─ title, gameId, rank?, role?
+  ├─ current, max?
+  ├─ ownerId, ownerName, leadAvatar
+  ├─ memberIds[]
+  ├─ createdAt
+  └─ messages/{msgId}                   <-- (Sub-collection เก็บข้อความแชทภายในตี้)
+       └─ senderId, senderName, senderAvatar, text, createdAt
 ```
 
-### 2. ตั้งค่า Firebase
+---
 
-ไฟล์ `lib/firebase_options.dart` ต้องมีค่าจริงของ project คุณ
-ดู `google-services.json` (Android) / `GoogleService-Info.plist` (iOS) เพื่อ map ค่า
+## 🚀 การจัดการเกมแบบ Dynamic (วิธีเพิ่มเกมใหม่)
 
-### 3. เปิด Firebase Auth
+แอปพลิเคชันไม่ต้องแก้ไขโค้ดหรือ Build ใหม่เมื่อต้องการเพิ่มเกม หากต้องการเพิ่มเกมให้ทำตามนี้:
 
-ไปที่ **Firebase Console → Authentication → Sign-in method → เปิด "Email/Password"**
+1. ไปที่ Firebase Console -> Firestore Database
+2. ไปที่ Collection `games` -> กด **Add Document**
+3. ตั้งชื่อ **Document ID** เป็นตัวพิมพ์เล็ก (เช่น `apex`)
+4. เพิ่ม Field ดังนี้:
+   * `displayName` (string): ชื่อที่จะแสดง เช่น "Apex Legends"
+   * `iconUrl` (string): URL รูปภาพจาก Firebase Storage
+   * `category` (string): หมวดหมู่ (เช่น "Battle Royale", "FPS")
+   * `hasRank` (boolean): `true` ถ้ามีระบบแรงค์
+   * `ranks` (array): รายชื่อแรงค์ เช่น `["Bronze", "Silver", "Gold"]`
+   * `hasRole` (boolean): `true` ถ้าต้องเลือกตำแหน่ง
+   * `roles` (array): รายชื่อตำแหน่ง
+   * `allowMultiRole` (boolean): `true` ถ้ายอมให้กดเลือกหาหลายตำแหน่งพร้อมกันได้
+   * `maxPartySize` (number/int64): จำนวนคนรับสูงสุดต่อตี้ (เช่น `3`)
+   * `memberLabel` (string): สรรพนามเรียกคน (เช่น "คน", "ผู้เล่น")
 
-> ⚠️ ขั้นนี้สำคัญมาก ถ้าลืมจะ register/login ไม่ได้ขึ้น `auth/operation-not-allowed`
+> ทันทีที่กด Save เกมใหม่จะโผล่ในหน้า `GameSelectionScreen` ทันทีแบบ Real-time
 
-### 4. ตั้ง Firestore Rules (สำหรับ dev)
+---
 
-```js
+## 🔒 Firestore Rules ที่อัปเดตล่าสุด
+
+เพื่อความปลอดภัย ป้องกันผู้ใช้ทั่วไปแก้ไขรายชื่อเกม และป้องกันการแก้ไขโปรไฟล์คนอื่น:
+
+```javascript
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // parties + sub-collection messages
+    
+    // กฎสำหรับรายชื่อเกม: ให้ทุกคนอ่านได้ แต่แก้ไขจากแอปไม่ได้ (ต้องแก้ผ่าน Console เท่านั้น)
+    match /games/{gameId} {
+      allow read: if true; 
+      allow write: if false; 
+    }
+
     match /parties/{partyId} {
-      allow read, write: if true;
+      allow read: if true;
+      allow create: if request.auth != null;
+      allow update: if request.auth != null;        // join/leave
+      allow delete: if request.auth != null
+                    && resource.data.ownerId == request.auth.uid;
       match /messages/{msgId} {
-        allow read, write: if true;
+        allow read, create: if request.auth != null;
+        allow delete: if request.auth != null;       // ให้หัวตี้ลบแชทตอนลบห้องได้
       }
     }
-    // users + sub-collection reviews
+
     match /users/{userId} {
       allow read: if true;
-      allow write: if request.auth != null && request.auth.uid == userId;
+      allow write: if request.auth != null && request.auth.uid == userId; // แก้โปรไฟล์ตัวเองได้เท่านั้น
       match /reviews/{reviewId} {
         allow read: if true;
-        allow create: if request.auth != null
-                      && request.auth.uid != userId;  // กันรีวิวตัวเอง
+        allow create: if request.auth != null && request.auth.uid != userId; // เขียนรีวิวให้ตัวเองไม่ได้
       }
     }
   }
 }
 ```
 
-> ก่อน deploy production แก้ rules ให้เข้มกว่านี้
+---
 
-### 5. รัน
+## 📝 TODO List (สิ่งที่พัฒนาต่อยอดได้)
 
-```bash
-flutter run
+- [ ] Auto-redirect: นัดแนะพาทุกคนออกจากหน้าแชทกลับไปหน้าฟีดอัตโนมัติเมื่อหัวตี้ลบห้อง
+- [ ] My Parties: หน้าตรวจสอบว่าตอนนี้ฉัน Join ตี้ไหนค้างไว้บ้าง (`where memberIds array-contains <my uid>`)
+- [ ] Image Picker: อัปโหลดรูปโปรไฟล์จาก Gallery ในเครื่องขึ้น Firebase Storage
+- [ ] Push Notification: แจ้งเตือนเมื่อมีคน Join ตี้ หรือมีข้อความแชทใหม่ (Firebase Messaging)
 ```
-
----
-
-## 🔥 Firestore Schema
-
-```
-users/{uid}
-  ├─ username, email, avatarUrl, discordTag, steamId, tagline, traits[]
-  └─ reviews/{reviewId}
-       └─ reviewerUid, reviewerName, reviewerAvatar, rating, text, createdAt
-
-parties/{partyId}
-  ├─ title, gameId, rank?, role?, current, max?
-  ├─ ownerId, ownerName, leadAvatar, createdAt
-  └─ messages/{msgId}
-       └─ senderId, senderName, senderAvatar, text, createdAt
-```
-
-**ออกแบบเป็น "denormalized"** — `ownerName`, `leadAvatar` ใน party doc คือ **snapshot ตอนสร้าง**
-เหมือน Twitter/Discord ที่ snapshot ชื่อตอนโพสต์ — เปลี่ยน profile ทีหลังจะไม่กระทบ posts เก่า
-ตี้/รีวิว/แชทใหม่หลังเปลี่ยน profile จะใช้รูป+ชื่อใหม่อัตโนมัติ
-
----
-
-## 🧠 Flow การใช้งาน
-
-1. **Register** → กรอกชื่อ + email + password
-   → Firebase Auth สร้าง user
-   → Firestore สร้าง doc `users/{uid}` ด้วยชื่อจากฟอร์ม + avatar default (pravatar)
-   → เด้งเข้า GameSelectionScreen
-2. **Login** → email + password → main.dart `authStateChanges` พาเข้า GameSelectionScreen
-3. **สร้างตี้** — `create_party_screen` ดึง profile ของ user → snapshot ชื่อ+รูปลง party doc
-4. **กด card ตี้** → `party_detail_screen` — เห็นสมาชิก (กดรูปหัวตี้ → ไปโปรไฟล์เขา) + chat
-5. **กดที่รูปคนอื่น** ใน chat / member list → `profile_screen(uid: คนนั้น)`
-   → เห็นปุ่ม **Write Review** → ให้ดาว + เขียนรายละเอียด → save เข้า `users/{uid}/reviews/`
-6. **โปรไฟล์ตัวเอง** (กดไอคอน account ขวาบนของ GameSelection) → เห็นปุ่ม **Edit** → แก้ทุกฟิลด์ได้
-
----
-
-## 🖼️ การเปลี่ยนรูปโปรไฟล์
-
-ตอนนี้ใช้ระบบ **URL paste** — แปะลิงก์รูป (เช่น Discord CDN, Imgur, pravatar) ใน Edit Profile แล้วกด save
-
-ทำไมถึงใช้ URL?
-- ไม่ต้องเพิ่ม package เพิ่ม
-- ไม่ต้องตั้ง permission Android/iOS
-- ไม่ต้องเปิด Firebase Storage
-
-### Image Upload (Optional Upgrade)
-
-ถ้าจะเปลี่ยนเป็น **อัปโหลดรูปจากเครื่อง** (ดีกว่า UX แต่ setup เพิ่ม):
-
-1. เพิ่ม packages:
-   ```yaml
-   image_picker: ^1.1.2
-   firebase_storage: ^12.3.0
-   ```
-2. เปิด **Firebase Storage** ใน Firebase Console
-3. แก้ `edit_profile_screen.dart` ให้:
-   - ใช้ `ImagePicker().pickImage(source: ImageSource.gallery)` เลือกรูป
-   - upload ไป Storage `avatars/{uid}.jpg`
-   - เก็บ download URL ลง `users/{uid}.avatarUrl`
-
-จะทำเพิ่มทีหลังได้ ไม่ต้องรื้อโค้ดเดิม
-
----
-
-## 🧩 เพิ่มเกมใหม่
-
-แก้ไฟล์เดียว: `lib/config/game_config.dart` เพิ่ม entry ใน `GameRegistry.all`
-
-```dart
-GameConfig(
-  id: 'apex',
-  displayName: 'Apex Legends',
-  icon: Icons.flash_on,
-  hasRank: true,
-  ranks: ['Any', 'Bronze', 'Silver', 'Gold', 'Platinum', 'Diamond'],
-  hasRole: false,
-  maxPartySize: 3,
-),
-```
-
-หน้า GameSelection + ฟอร์มสร้างตี้ จะรองรับเกมใหม่ทันที — ไม่ต้องแก้ UI
-
----
-
-## 📝 TODO
-
-- [ ] ระบบ "เข้าร่วมตี้" จริงๆ — กดแล้ว `current += 1` แบบ `transaction`
-- [ ] หน้า "ตี้ของฉัน" — query `where ownerId == currentUser.uid`
-- [ ] auto-close ตี้เมื่อ `current == max`
-- [ ] Image upload (ดูหัวข้อด้านบน)
-- [ ] ป้องกัน user รีวิวคนเดียวกันซ้ำ (เพิ่ม check ใน rules)
-- [ ] Typing indicator ใน chat
-- [ ] Push notification เมื่อมี chat ใหม่
-
----
-
-## 🛠 Stack
-
-- Flutter SDK ≥ 3.38.4
-- Firebase Auth / Firestore / Core
-- google_fonts (Noto Sans Thai)
-- flutter_rating_bar (สำหรับ stars)
-- Material 3
