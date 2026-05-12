@@ -10,6 +10,7 @@
 - ☁️ **Dynamic Game Registry** — ดึงรายชื่อเกม กฎของเกม (Rank, Role, Party Size) และรูปภาพจาก Firestore แบบ Real-time เพิ่มเกมใหม่ได้ทันทีผ่าน Firebase Console
 - 🔍 **Search & Category Filter** — ค้นหาเกมจากชื่อ หรือกรองตามหมวดหมู่ (เช่น FPS, MOBA, Battle Royale)
 - 🔐 **Firebase Auth** — Register / Login ด้วย Email + Password
+- 🔑 **Change Password** — เปลี่ยนรหัสผ่านได้อย่างปลอดภัย พร้อมระบบยืนยันรหัสผ่านเดิมก่อนเปลี่ยน (Re-authentication)
 - 👤 **User Profiles** — โปรไฟล์ส่วนตัว (ชื่อ, รูป Avatar, Tagline, Discord, Steam, Style Traits)
 - 🔄 **Real-time Party Feed** — มีคนสร้างตี้ที่ไหน ฟีดอัปเดตทันที
 - ✋ **Join / Leave Party** — กดปุ่ม "เข้าร่วมตี้" (ใช้ Firestore transaction ป้องกันคนเข้าเกินจำนวน)
@@ -39,7 +40,7 @@ lib/
 │   └── message_model.dart             # โครงสร้างข้อมูลข้อความแชทในตี้
 │
 ├── services/
-│   ├── auth_service.dart              # จัดการ Login, Register, SignOut (Firebase Auth)
+│   ├── auth_service.dart              # จัดการ Login, Register, SignOut และการเปลี่ยนรหัสผ่าน
 │   ├── game_service.dart              # ดึงข้อมูลรายชื่อเกมทั้งหมดจาก Firestore Collection 'games'
 │   ├── user_service.dart              # CRUD ข้อมูลโปรไฟล์และระบบรีวิว
 │   ├── party_service.dart             # จัดการสร้าง, เข้าร่วม, ออก, ลบตี้ (ใช้ Transaction)
@@ -48,11 +49,12 @@ lib/
 └── screens/
     ├── login_screen.dart              # หน้าเข้าสู่ระบบ
     ├── register_screen.dart           # หน้าสมัครสมาชิก
+    ├── change_password_screen.dart    # หน้าเปลี่ยนรหัสผ่าน (มีระบบยืนยันตัวตน)
     ├── game_selection_screen.dart     # หน้าแรกหลังล็อกอิน: แสดงรายการเกม, ช่องค้นหา, และปุ่ม Filter หมวดหมู่
     ├── party_feed_screen.dart         # หน้ากระดานหาตี้ของเกมนั้นๆ (Party Feed)
     ├── create_party_screen.dart       # หน้าสร้างตี้: รองรับกฎของแต่ละเกม (เช่น เลือกได้หลาย Role สำหรับ Valorant)
     ├── party_detail_screen.dart       # หน้าห้องตี้: แสดงสมาชิก, ปุ่ม Join/Leave/Delete, และช่องแชท
-    ├── profile_screen.dart            # หน้าแสดงโปรไฟล์ผู้ใช้ และโชว์คะแนนรีวิว
+    ├── profile_screen.dart            # หน้าแสดงโปรไฟล์ผู้ใช้ และโชว์คะแนนรีวิว (รวมปุ่มเปลี่ยนรหัสผ่าน)
     ├── edit_profile_screen.dart       # หน้าแก้ไขโปรไฟล์ตัวเอง
     └── write_review_screen.dart       # หน้าเขียนรีวิวให้ผู้อื่น
 ```
@@ -150,7 +152,7 @@ service cloud.firestore {
 
 ## 📝 TODO List (สิ่งที่พัฒนาต่อยอดได้)
 
-- [ ] Auto-redirect: นัดแนะพาทุกคนออกจากหน้าแชทกลับไปหน้าฟีดอัตโนมัติเมื่อหัวตี้ลบห้อง
+- [ ] Auto-redirect: นำผู้ใช้ออกจากหน้าแชทกลับไปหน้าฟีดอัตโนมัติเมื่อหัวตี้ลบห้อง
 - [ ] My Parties: หน้าตรวจสอบว่าตอนนี้ฉัน Join ตี้ไหนค้างไว้บ้าง (`where memberIds array-contains <my uid>`)
 - [ ] Image Picker: อัปโหลดรูปโปรไฟล์จาก Gallery ในเครื่องขึ้น Firebase Storage
 - [ ] Push Notification: แจ้งเตือนเมื่อมีคน Join ตี้ หรือมีข้อความแชทใหม่ (Firebase Messaging)
